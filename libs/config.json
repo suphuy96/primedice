@@ -1,0 +1,31 @@
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI3MDdiZmQ1YS0yNDEyLTQ4YzYtODg3Yy0wYmU3ZmUxMmYzZDgiLCJpYXQiOjE1NTU3NDIzMzUsImV4cCI6MTU2MDkyNjMzNX0.DpwQ7xfRDBi6VxzqhHs00m_ExjVCDrCmzKVWycedquk",
+  "levelBet": 8,
+  "levelPayout": 7.1,
+  "limitLost": 0.04,
+  "limitStopLost": 0.09,
+  "msg": "isupdate",
+  "isNowUpdate": false,
+  "ResetBet": 20,
+  "isCache": true,
+  "isLog": true,
+  "ArFBRT": [],
+  "ArFB": [
+    "100025891724486"
+  ],
+  "chatBot": {
+    "loginByAppstate": true,
+    "username": "primedice.bot",
+    "password": "HUYpham251296"
+  },
+  "username": "nguyenson",
+  "balance": 4200001,
+  "coin": "eth",
+  "IsReFrofit": true,
+  "ReFrofit": 7,
+  "continueBet": true,
+  "limitPayout": {
+    "min": 600,
+    "max": 714
+  }
+}
