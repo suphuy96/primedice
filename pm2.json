@@ -1,0 +1,16 @@
+{
+  "apps": [
+    {
+      "name": "primedice",
+      "script": "primedice.js",
+
+      "args": "['--debug=7000']" ,
+      "env": {
+        "NODE_ENV": "production"
+      }   ,
+      "error_file" : "logs/logerr.log",
+      "out_file"   : "logs/loggg.log"
+
+    }
+  ]
+}
