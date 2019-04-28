@@ -1,1 +1,34 @@
-{"token":"","levelBet":1,"levelPayout":7.900000000000001,"limitLost":0.045,"limitStopLost":0.9,"msg":"isupdate","isNowUpdate":false,"ResetBet":20,"isCache":true,"isLog":true,"ArFBRT":[],"ArFB":["100025891724486"],"chatBot":{"loginByAppstate":true,"username":"primedice.bot","password":"HUYpham251296"},"username":"nhunbin","balance":13752,"coin":"btc","IsReFrofit":true,"ReFrofit":7,"continueBet":true,"limitPayout":{"min":600,"max":710}}
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYjdhODJjNi1jMmQ2LTQxZjItYmJkYy02OWFlODFiNmM4OTEiLCJpYXQiOjE1NTYxODgwMjIsImV4cCI6MTU2MTM3MjAyMn0.mR7XUv7Ru_6WZTBFYhK1fURznWZIRHrMY4xzn0btpAo",
+  "levelBet": 6,
+  "levelPayout": 8.2,
+  "betOne": 2,
+  "limitLost": 0.036,
+  "limitStopLost": 0.25,
+  "msg": "isupdate",
+  "isNowUpdate": false,
+  "ResetBet": 20,
+  "isCache": true,
+  "isLog": false,
+  "isTest": true,
+  "rounds": 65000,
+  "ArFBRT": [],
+  "ArFB": [
+    "100025891724486"
+  ],
+  "chatBot": {
+    "loginByAppstate": true,
+    "username": "primedice.bot",
+    "password": "HUYpham251296"
+  },
+  "username": "kiemtientieu",
+  "balance": 8500000,
+  "coin": "eth",
+  "IsReFrofit": true,
+  "ReFrofit": 7,
+  "continueBet": true,
+  "limitPayout": {
+    "min": 500,
+    "max": 550
+  }
+}
