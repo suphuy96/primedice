@@ -1,9 +1,18 @@
-var RollBet = require("./libs/request");
-var ChatBot = require("./libs/chatbot");
-ChatBot.initListen();
 var Database = require("./libs/database");
 var
     config = Database.GetConfig();
+var RollBet = null;
+var ChatBot = require("./libs/chatbot");
+if (!config.isTest) {
+    // chơi thật
+    ChatBot.initListen();
+    RollBet = require("./libs/request");
+} else {
+    // chơi thử
+    console.time("timetest")
+    RollBet = require("./libs/fakebet").rollBet;
+}
+var betOne = config.betOne;
 var username = config.username;
 var balance = config.balance; // số coin hiện tại
 var levelBet = config.levelBet; // cấp độ chơi -- ảnh hưởng tới mức độ ăn levelBet càng lớn thì ăn càng nhiều,levelBet sẽ tự động bị giảm/tăng theo thuật toán
@@ -16,7 +25,7 @@ var totalBest = 0; // Tổng bet đã chơi
 var TimePlay = 0; // Tổng giờ chạy bot
 var mapLost = Database.Get("mapLost");
 if (!mapLost || !mapLost.length || mapLost.length < 5)
-    mapLost = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]; // lưu trữ tổng hợp các ván đã chơi
+    mapLost = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,  0, 0, 0, 0]; // lưu trữ tổng hợp các ván đã chơi
 var bet = 1; // số coin chơi hiện tại.
 var startBalanceBet = balance; // tiền bắt đầu của ván
 var startBalance = balance; // số vốn ban đầu chạy
@@ -28,7 +37,7 @@ var totalLost = 0; // tổng thua hiện tại
 var sleepBet = 1411; // nghỉ nhịp bot
 var chainLostDemo = 0;
 var betDemo = 0;
-var cachedowndown = 0.87;
+var cachedowndown = 0.9;
 var cachelimitLost = true;
 var chance = (Math.random() * (6) + 3).toFixed(2);
 var betInfo = {
@@ -98,7 +107,7 @@ var FunChangePayout = function () {
 }
 /*---------Function init Before---------*/
 var initBefore = function () {
-    if (isCache) {
+    if (isCache && !config.isTest) {
         cacheRolling = Database.GetCache();
         if (cacheRolling.balance == balance && cacheRolling.limitPayout == ("huy" + config.limitPayout.min + config.limitPayout.max)) {
             betInfo = cacheRolling.betInfo,
@@ -174,7 +183,8 @@ SaveBetInfo();
 
 /*---------------logic----------------*/
 function play() {
-    RollBet(bet, payout, rollOverUnder, config.coin, function (error, response) {
+    RollBet(bet, payout, rollOverUnder, config.coin,
+        function (error, response) {
             totalBest++;
             balance = parseFloat(response.user.balance);
             if (response.bet.win == false) {
@@ -205,8 +215,8 @@ function play() {
                         downdown = 0.05;
                     }
                     LevelBetNow -= 1;
-                    if(LevelBetNow<1){
-                        LevelBetNow=1;
+                    if (LevelBetNow < 1) {
+                        LevelBetNow = 1;
                     }
                     if (cachelimitLost) {
                         levelBet -= 1;
@@ -222,7 +232,7 @@ function play() {
                     }
                     cachelimitLost = false;
                 }
-                if (chainLost < realMultiply * 0.6) {
+                if (chainLost < realMultiply * betOne) {
                     bet = 1;
                 } else {
                     cacheLost.countBet++;
@@ -235,64 +245,39 @@ function play() {
                         bet += 1;
                 }
                 //qua ngưỡng thua limitLost và trong limitStopLost thì giảm 1 nửa cược nếu set config IsReFrofit =true
-                if (IsReFrofit && (totalLost > startBalanceBet * config.limitLost) && (totalLost < startBalanceBet * config.limitStopLost)) {
-                    bet *= 0.99;
-                    // cacheLost.isLost = true;
-                    // cacheLost.lost = totalLost * 0.43;
-                    // if (checkCacheLost)
-                    //     cacheLost.ReFrofit += ReFrofit;
-                    // cacheLost.Perbet = cacheLost.lost / ReFrofit;
-                    checkCacheLost = false;
-                    Log("___| " + "bắt đầu thua dài __|" + totalLost);
-                    ChatBot.SendFB("tt", "__Đã giảm hơn " + config.limitLost + "%" + "\n __ bet: " + bet + "\n __ CountBet :" + chainLost + "\n __ Mutil :" + multiply);
-                } else if (IsReFrofit && totalLost > startBalanceBet * config.limitStopLost) {
-                    bet = 1;
+                if (IsReFrofit && totalLost > startBalanceBet * config.limitStopLost) {
+                    bet *= 0.7;
                     // xóa phiên chơi hiện tại lưu số thua phục thù sau tạo phiên chơi mới
-                    cacheLost.isLost = true;
-                    cacheLost.lost = totalLost + 1;
-                    if (checkCacheLost)
-                        cacheLost.ReFrofit += ReFrofit;
-                    cacheLost.Perbet = cacheLost.lost / ReFrofit;
-                    checkCacheLost = false;
+
                     Log("___| " + "_saved lost_______" + totalLost);
                     ChatBot.SendFB("tt", "__Đã giảm hơn " + config.limitStopLost + "%" + "\n __ bet: " + bet + "\n __ CountBet :" + chainLost + "\n __ Mutil :" + multiply);
                 }
-                SaveBetInfo();
-            } else
-                {
+                if (!config.isTest)
+                    SaveBetInfo();
+            } else {
                 var ProfitDay = parseInt((balance - startBalance) / TimePlay * 60 * 60 * 24);
                 var tinh = parseInt(chainLost * multiply);
                 // setCacheLost
-                if (IsReFrofit && cacheLost.isLost && cacheLost.countBet > 0 && cacheLost.countBet < realMultiply) {
-                    console.log(cacheLost.ReFrofit + "____gỡ vốn thành công___" + cacheLost.Perbet);
-                    console.log(cacheLost);
-                    cacheLost.lost -= cacheLost.Perbet;
-                    cacheLost.ReFrofit -= 1;
-                    cacheLost.countBet = 0;
-                    if (cacheLost.ReFrofit <= 0) {
-                        cacheLost.lost = 0;
-                        cacheLost.isLost = false;
-                        cacheLost.finished += 1;
 
-                    }
-                }
                 mapLost[tinh] += 1;
-                Database.Save("mapLost", mapLost);
-                config = Database.GetConfig();
-                if(config.isNowUpdate){
-                    levelBet=config.levelBet;
-                    levelPayout=config.levelPayout;
-                    limitPayout=config.limitPayout;
-                    balance=config.balance;
-                    config.isNowUpdate=false;
+                if (!config.isTest)
+                    Database.Save("mapLost", mapLost);
+                if (!config.isTest) {
+                    config = Database.GetConfig();
+                    if (config.isNowUpdate) {
+                        levelBet = config.levelBet;
+                        levelPayout = config.levelPayout;
+                        limitPayout = config.limitPayout;
+                        balance = config.balance;
+                        config.isNowUpdate = false;
 
-                }else
-                config.balance = balance;
-                Database.UpdateConfig(config);
-                SaveBetInfo();
-                //log hystory
+                    } else
+                        config.balance = balance;
+                    Database.UpdateConfig(config);
+                    SaveBetInfo();
+                    //log hystory
 
-
+                }
                 Log("_______________________________________________________");
                 console.log(" -TB" + totalBest + " - User :" + username + " - balance :" + balance + " - bet :" + bet + " - profit bet :" + response.bet.profit + " - profit :" + (balance - startBalanceBet) + "- CN " + (1 / multiply).toFixed(2) + " - chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " - chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " - Max lost:" + maxLost + " - ProfitDay :" + ProfitDay + " - bet.id :" + response.bet.id + " map :" + JSON.stringify(mapLost));
                 let ct = "______---❤💰💰💰💰❤---______" +
@@ -303,10 +288,10 @@ function play() {
                     "\n👉🏼 chiu______ : " + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(1) + ")" +
                     "\n👉🏼 ProfitBet_ : " + (balance - startBalanceBet) +
                     "\n👉🏼 TimeBet___ : " + (TimePlay / 60).toFixed(2) + "p";
-                if (cacheLost.isLost) {
-                    ChatBot.SendFB("TT", "------thua dài------\n" + ct);
-                } else
+                if (!config.isTest) {
+
                     ChatBot.SendFB("RT", ct);
+                }
                 chainLost = 0;
                 totalLost = 0;
                 cacheLost.countBet = 0;
@@ -321,7 +306,7 @@ function play() {
                 chainLostDemo = 0;
                 var balanelimitLost = startBalanceBet * config.limitLost;
                 // dự đoán mức chịu đựng và cân chỉnh cược
-                var stopbalance=balance * 0.55
+                var stopbalance = balance * 0.55
                 while (balanceDemo > stopbalance) {
                     var sothuademo = balance - balanceDemo;
                     chainLostDemo++;
@@ -333,7 +318,7 @@ function play() {
                         if (demoLevelBet < 2)
                             demoLevelBet = 2;
                     }
-                    if (chainLostDemo < realMultiply * 0.6) {
+                    if (chainLostDemo < realMultiply * betOne) {
                         betDemo = 1;
                     } else {
 
@@ -341,7 +326,7 @@ function play() {
                         if (chainLostDemo < realMultiply * 2.3)
                             betDemo += 1;
                     }
-                    betDemo = parseInt((betDemo).toFixed(8) + 0.3);
+                    betDemo = parseInt((betDemo).toFixed(8) + 0.1);
                     balanceDemo -= betDemo;
                 }
                 // căn chỉnh levelBet;
@@ -354,47 +339,83 @@ function play() {
                     if (levelBet < 1) levelBet = 1;
                     config.levelBet = levelBet;
                     LevelBetNow = levelBet;
-                    if (isCache) {
-                        cacheRolling = {
-                            limitPayout: ("huy" + config.limitPayout.min + config.limitPayout.max),
-                            betInfo: betInfo,
-                            cacheLost: cacheLost,
-                            totalBest: totalBest,
-                            bet: bet,
-                            mapLost: mapLost,
-                            payout: payout,
-                            rollOverUnder: rollOverUnder,
-                            startBalanceBet: startBalanceBet,
-                            balance: balance,
-                            chainLost: chainLost,
-                            cachedowndown: cachedowndown,
-                            multiply: multiply,
-                            chance: chance,
-                            checkCacheLost: checkCacheLost,
-                            payout: payout,
-                            LevelBetNow: LevelBetNow,
-                            levelBet: levelBet,
-                            betDemo: betDemo,
-                            maxLost: maxLost,
-                            maxLost2: maxLost2,
-                            totalLost: totalLost,
-                            chainLostDemo: chainLostDemo,
-                            cachelimitLost: cachelimitLost
-                        };
-                        Database.UpdateCache(cacheRolling);
+                    if (!config.isTest)
+                        if (isCache) {
+                            cacheRolling = {
+                                limitPayout: ("huy" + config.limitPayout.min + config.limitPayout.max),
+                                betInfo: betInfo,
+                                cacheLost: cacheLost,
+                                totalBest: totalBest,
+                                bet: bet,
+                                mapLost: mapLost,
+                                payout: payout,
+                                rollOverUnder: rollOverUnder,
+                                startBalanceBet: startBalanceBet,
+                                balance: balance,
+                                chainLost: chainLost,
+                                cachedowndown: cachedowndown,
+                                multiply: multiply,
+                                chance: chance,
+                                checkCacheLost: checkCacheLost,
+                                payout: payout,
+                                LevelBetNow: LevelBetNow,
+                                levelBet: levelBet,
+                                betDemo: betDemo,
+                                maxLost: maxLost,
+                                maxLost2: maxLost2,
+                                totalLost: totalLost,
+                                chainLostDemo: chainLostDemo,
+                                cachelimitLost: cachelimitLost
+                            };
+                            Database.UpdateCache(cacheRolling);
+                        }
+                    if (!config.isTest) {
+                        config.balance = balance;
+                        Database.UpdateConfig(config);
+                        SaveBetInfo();
                     }
-                    config.balance = balance;
-                    Database.UpdateConfig(config);
-                    SaveBetInfo();
-                } else if (levelPayoutDemo > levelPayout + 0.45) {
+
+                } else if (levelPayoutDemo > levelPayout + 0.1) {
                     levelBet += 1;
                     if (levelPayoutDemo - levelPayout > 1) {
                         levelBet += parseInt(levelPayoutDemo - levelPayout);
                     }
                     config.levelBet = levelBet;
                     LevelBetNow = levelBet;
-                    Database.UpdateConfig(config);
-                    SaveBetInfo();
+                    if (!config.isTest)
+                        if (isCache) {
+                            cacheRolling = {
+                                limitPayout: ("huy" + config.limitPayout.min + config.limitPayout.max),
+                                betInfo: betInfo,
+                                cacheLost: cacheLost,
+                                totalBest: totalBest,
+                                bet: bet,
+                                mapLost: mapLost,
+                                payout: payout,
+                                rollOverUnder: rollOverUnder,
+                                startBalanceBet: startBalanceBet,
+                                balance: balance,
+                                chainLost: chainLost,
+                                cachedowndown: cachedowndown,
+                                multiply: multiply,
+                                chance: chance,
+                                checkCacheLost: checkCacheLost,
+                                payout: payout,
+                                LevelBetNow: LevelBetNow,
+                                levelBet: levelBet,
+                                betDemo: betDemo,
+                                maxLost: maxLost,
+                                maxLost2: maxLost2,
+                                totalLost: totalLost,
+                                chainLostDemo: chainLostDemo,
+                                cachelimitLost: cachelimitLost
+                            };
+                            Database.UpdateCache(cacheRolling);
+                        }
+                    if (!config.isTest) {
+                        Database.UpdateConfig(config);
+                        SaveBetInfo();
+                    }
                 }
                 var initramdom = Math.floor((Math.random() * 10));
                 // đảo chiều roll
@@ -409,30 +430,60 @@ function play() {
                 bet = parseInt(1);
             if (bet > balance)
                 bet = balance * 0.8;
-            betInfo = Database.Get("betInfo");
 
-            continueBet = betInfo.continueBet;
+            if (!config.isTest) {
+                betInfo = Database.Get("betInfo");
 
-            bet = parseInt((bet).toFixed(8) + 0.3);
+                continueBet = betInfo.continueBet;
+            }
+            bet = parseInt((bet).toFixed(8) + 0.1);
             Log("debug chainLost:" + chainLost + " balance :" + balance + " bet :" + bet + " profit bet :" + response.bet.profit + " lostRoll :" + totalLost + " payoutIn: " + response.bet.payout.toFixed(2) + " multiply " + (1 / multiply).toFixed(2) + " chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " id :" + response.bet.id);
             if (continueBet && config.continueBet && balance > 0) {
-                if (totalBest > sleepBet) {
+                if (config.isTest) {
+                    // config.rounds là số lượng bet
+                    if (totalBest > config.rounds && totalLost < 10) {
+                        console.log("");
+                        console.log("");
+                        console.log("");
+                        console.log("");
+                        console.log("_______________________________");
+                        console.log("_______________________________");
+                        console.timeEnd("timetest")
+                        console.log("__________________test finished______________________");
+                        console.log("||bets_______:" + totalBest);
+                        console.log("||Profit_____:" + (balance - startBalance));
+                        console.log("||Profit%____:" + ((balance - startBalance) / startBalance * 100) + "%");
+                        console.log("||levelbet___:" + levelBet);
+                        console.log("||levelPayout:" + levelPayout);
+                        console.log("||maxLost____:" + maxLost);
+                        console.log("||maxLost%___:" + maxLost2);
+                        console.log("||"+JSON.stringify(mapLost));
+                        console.log("_______________________________");
+                        console.log("_______________________________");
+
+                    } else
+                        setTimeout(function () {
+                            play()
+                        }, 1);
+
+                } else if (totalBest > sleepBet) {
                     sleepBet = totalBest + Math.floor((Math.random() * 1134) + 400), totalBest = 0;
                     setTimeout(function () {
                         play()
                     }, Math.floor((Math.random() * 1034) + 10900));
                 } else {
+
                     setTimeout(function () {
                         play()
-                    }, 15);
+                    }, 5);
                 }
             } else {
-                config.continueBet=true;
+                config.continueBet = true;
                 Database.UpdateConfig(config);
-                ChatBot.SendFB("TB","Đã dừng tool");
+                ChatBot.SendFB("TB", "Đã dừng tool");
                 console.log("----------top bot-----------");
             }
-        }
+        }, realMultiply
     );
 }
 
@@ -474,6 +525,28 @@ let gracefulExit = function () {
     };
     config.balance = balance;
     config.levelBet = levelBet;
+    if (config.isTest) {
+        // config.rounds là số lượng bet
+        console.log("");
+        console.log("");
+        console.log("");
+        console.log("");
+        console.log("_______________________________");
+        console.log("_______________________________");
+        console.timeEnd("timetest")
+        console.log("__________________test finished______________________");
+        console.log("||bets_______:" + totalBest);
+        console.log("||Profit_____:" + (balance - startBalance));
+        console.log("||Profit%____:" + ((balance - startBalance) / startBalance * 100) + "%");
+        console.log("||levelbet___:" + levelBet);
+        console.log("||levelPayout:" + levelPayout);
+        console.log("||maxLost____:" + maxLost);
+        console.log("||maxLost%___:" + maxLost2);
+        console.log("||"+JSON.stringify(mapLost));
+        console.log("_______________________________");
+        console.log("_______________________________");
+
+    }
     Database.UpdateConfig(config, function () {
         Database.UpdateCache(cacheRolling, function () {
             console.log("saved cache");
