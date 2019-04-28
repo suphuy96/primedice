@@ -1,9 +1,23 @@
 var request = require('superagent');
-var Database=require("./database");
+var Database = require("./database");
 
 var config = Database.GetConfig();
 var balance = config.balance;
-
+var ChangeServerSeed = function (callback) {
+    request.post("https://api.primedice.com/graphql")
+        .set('x-access-token', config.token)
+        .set('Content-type', 'application/json;charset=UTF-8')
+        .send([{
+                "operationName": "RotateServerSeedMutation",
+                "variables": {},
+                "query": "mutation RotateServerSeedMutation {\n  rotateServerSeed {\n    id\n    seedHash\n    nonce\n    user {\n      id\n      activeServerSeed {\n        id\n        seedHash\n        nonce\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n}\n"
+            }]
+        )
+        .end(function (error, res) {
+            if (callback)
+                return callback(res);
+        });
+}
 var RollBet = function (amount, target, condition, coin, callback) {
     var chuyen = parseInt(amount) + "";
     var huytam = "0.";
@@ -39,14 +53,14 @@ var RollBet = function (amount, target, condition, coin, callback) {
                     balance -= amount;
                 } else {
                     loilo = parseInt(amount * (dl.primediceRoll.payoutMultiplier - 1));
-                    if(loilo<1)
-                        loilo=1;
+                    if (loilo < 1)
+                        loilo = 1;
                     balance += loilo;
                     bientinh = true;
                 }
-                var result=11111;
-                if(dl.primediceRoll.state&&dl.primediceRoll.state.result)
-                    result=dl.primediceRoll.state.result;
+                var result = 11111;
+                if (dl.primediceRoll.state && dl.primediceRoll.state.result)
+                    result = dl.primediceRoll.state.result;
                 var reqdata = {
                     user: {balance: balance},
                     bet: {
@@ -71,4 +85,4 @@ var RollBet = function (amount, target, condition, coin, callback) {
 };
 
 
-module.exports =  RollBet;
+module.exports = {RollBet:RollBet,ChangeServerSeed:ChangeServerSeed};
