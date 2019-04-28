@@ -1,8 +1,8 @@
 {
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIyYjdhODJjNi1jMmQ2LTQxZjItYmJkYy02OWFlODFiNmM4OTEiLCJpYXQiOjE1NTYxODgwMjIsImV4cCI6MTU2MTM3MjAyMn0.mR7XUv7Ru_6WZTBFYhK1fURznWZIRHrMY4xzn0btpAo",
-  "levelBet": 6,
-  "levelPayout": 8.2,
-  "betOne": 2,
+  "token": "",
+  "levelBet": 4,
+  "levelPayout": 8.4,
+  "betOne": 1.1,
   "limitLost": 0.036,
   "limitStopLost": 0.25,
   "msg": "isupdate",
@@ -11,7 +11,7 @@
   "isCache": true,
   "isLog": false,
   "isTest": true,
-  "rounds": 65000,
+  "rounds": 650000,
   "ArFBRT": [],
   "ArFB": [
     "100025891724486"
@@ -22,7 +22,7 @@
     "password": "HUYpham251296"
   },
   "username": "kiemtientieu",
-  "balance": 8500000,
+  "balance": 10125659.206529545,
   "coin": "eth",
   "IsReFrofit": true,
   "ReFrofit": 7,
