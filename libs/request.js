@@ -39,6 +39,8 @@ var RollBet = function (amount, target, condition, coin, callback) {
                     balance -= amount;
                 } else {
                     loilo = parseInt(amount * (dl.primediceRoll.payoutMultiplier - 1));
+                    if(loilo<1)
+                        loilo=1;
                     balance += loilo;
                     bientinh = true;
                 }

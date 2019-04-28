@@ -109,6 +109,20 @@ var initChatBot = function () {
                         }
                     } catch (e) {
                     }
+                } else if (event.body.toUpperCase().indexOf("SET REPROFIT") >= 0 && event.body.toUpperCase().indexOf(config.username.toUpperCase()) >= 0) {
+                    try {
+                        let stringne = event.body;
+                        if (!isNaN(parseInt(stringne.substring(13, 15)))) {
+                            console.log("set ting LEVELBET");
+                            config.isNowUpdate=true;
+                            config.ReFrofit=parseInt(stringne.substring(13, 15));
+                            Database.UpdateConfig(config);
+                            api.sendMessage("ℹ️đã update levelBet: " +   config.ReFrofit, event.threadID);
+                        } else {
+                            api.sendMessage("⚡không thể set levelBet⚡\n vui lòng nhập lại" + stringne.substring(13, stringne.length), event.threadID);
+                        }
+                    } catch (e) {
+                    }
                 }  else if (event.body.toUpperCase().indexOf("SET BALANCE") >= 0 && event.body.toUpperCase().indexOf(config.username.toUpperCase()) >= 0) {
                     try {
                         let stringne = event.body;
@@ -129,11 +143,11 @@ var initChatBot = function () {
                         if (!isNaN(parseFloat(stringne.substring(15,stringne.length)))) {
                             console.log("set ting levelPayout");
                             config.isNowUpdate=true;
-                            config.levelPayout=parseInt(stringne.substring(15, stringne.length));
+                            config.levelPayout=parseFloat(stringne.substring(15, stringne.length));
                             Database.UpdateConfig(config);
-                            api.sendMessage("ℹ️đã update levelBet: " +  config.levelPayout, event.threadID);
+                            api.sendMessage("ℹ️đã update levelPayout: " +  config.levelPayout, event.threadID);
                         } else {
-                            api.sendMessage("⚡không thể set levelBet⚡\n vui lòng nhập lại" + stringne.substring(15, stringne.length), event.threadID);
+                            api.sendMessage("⚡không thể set levelPayout⚡\n vui lòng nhập lại" + stringne.substring(15, stringne.length), event.threadID);
                         }
                     } catch (e) {
                     }
