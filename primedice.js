@@ -3,14 +3,18 @@ var
     config = Database.GetConfig();
 var RollBet = null;
 var ChatBot = require("./libs/chatbot");
+var doneTest=false;
+var request=require("./libs/request");
 if (!config.isTest) {
     // chơi thật
     ChatBot.initListen();
-    RollBet = require("./libs/request");
+    RollBet = request.RollBet;
 } else {
     // chơi thử
-    console.time("timetest")
-    RollBet = require("./libs/fakebet").rollBet;
+    console.time("timetest");
+    var fakebet=require("./libs/fakebet");
+    fakebet.init("9fa14761de54d476808a960db4510f1bc9d3d992f6918054855f966ebb52e5ef","09db278b06330490fsdfasdf")
+    RollBet = fakebet.rollBet;
 }
 var betOne = config.betOne;
 var username = config.username;
@@ -97,13 +101,15 @@ var cacheRolling = {
 
 /*-----Function change payout-------*/
 var FunChangePayout = function () {
-    chance = parseFloat(Math.random() * 26).toFixed(2) / 15;
-    multiply = (1 / ((100 / (chance)) - 1.099));
-    realMultiply = 1 / multiply; // multiply(0.01) là 1 số bé hơn 1/ realMultiply cấp nhân của cược(100)
+let temp=config.limitPayout.max+1-config.limitPayout.min;
+    realMultiply = parseFloat(parseFloat(config.limitPayout.min)+ parseFloat(Math.random(temp)));
+    chance=100/realMultiply;
 
     //  payout chỉ nằm trong khoảng config.limitPayout.min đến config.limitPayout.max
-    if ((1 / multiply > config.limitPayout.max) || (1 / multiply < config.limitPayout.min))
+    if ((realMultiply > config.limitPayout.max) || (realMultiply< config.limitPayout.min))
         FunChangePayout();
+    realMultiply -=1.002;
+    multiply=1/realMultiply;
 }
 /*---------Function init Before---------*/
 var initBefore = function () {
@@ -225,7 +231,7 @@ function play() {
                             cachedowndown = 0.5;
                             console.log("cachedowndown" + cachedowndown)
                         }
-                        levelPayout += 0.2;
+                        levelPayout += 0.15;
                         config.levelPayout = levelPayout;
                         config.levelBet = levelBet;
                         Database.UpdateConfig(config);
@@ -442,6 +448,7 @@ function play() {
                 if (config.isTest) {
                     // config.rounds là số lượng bet
                     if (totalBest > config.rounds && totalLost < 10) {
+                        doneTest=true;
                         console.log("");
                         console.log("");
                         console.log("");
@@ -449,10 +456,9 @@ function play() {
                         console.log("_______________________________");
                         console.log("_______________________________");
                         console.timeEnd("timetest")
-                        console.log("__________________test finished______________________");
                         console.log("||bets_______:" + totalBest);
-                        console.log("||Profit_____:" + (balance - startBalance));
-                        console.log("||Profit%____:" + ((balance - startBalance) / startBalance * 100) + "%");
+                        console.log("||Profit_____:" + (balance - startBalance).toFixed(1));
+                        console.log("||Profit%____:" + ((balance - startBalance) / startBalance * 100).toFixed(1) + "%");
                         console.log("||levelbet___:" + levelBet);
                         console.log("||levelPayout:" + levelPayout);
                         console.log("||maxLost____:" + maxLost);
@@ -525,7 +531,7 @@ let gracefulExit = function () {
     };
     config.balance = balance;
     config.levelBet = levelBet;
-    if (config.isTest) {
+    if (config.isTest &&!doneTest) {
         // config.rounds là số lượng bet
         console.log("");
         console.log("");
@@ -534,7 +540,6 @@ let gracefulExit = function () {
         console.log("_______________________________");
         console.log("_______________________________");
         console.timeEnd("timetest")
-        console.log("__________________test finished______________________");
         console.log("||bets_______:" + totalBest);
         console.log("||Profit_____:" + (balance - startBalance));
         console.log("||Profit%____:" + ((balance - startBalance) / startBalance * 100) + "%");
