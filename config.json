@@ -1,17 +1,18 @@
 {
   "token": "",
-  "levelBet": 4,
-  "levelPayout": 8.4,
-  "betOne": 1.1,
-  "limitLost": 0.036,
-  "limitStopLost": 0.25,
+  "levelBet": 18,
+  "levelPayout": 20.239999999999995,
+  "steepUpPayout": 0.08,
+  "betOne": 11,
+  "limitLost": 0.03,
+  "limitStopLost": 0.9,
   "msg": "isupdate",
   "isNowUpdate": false,
   "ResetBet": 20,
   "isCache": true,
   "isLog": false,
   "isTest": true,
-  "rounds": 650000,
+  "rounds": 45000,
   "ArFBRT": [],
   "ArFB": [
     "100025891724486"
@@ -21,14 +22,14 @@
     "username": "primedice.bot",
     "password": "HUYpham251296"
   },
-  "username": "kiemtientieu",
-  "balance": 10125659.206529545,
-  "coin": "eth",
+  "username": "huyquansu",
+  "balance": 2218,
+  "coin": "btc",
   "IsReFrofit": true,
-  "ReFrofit": 7,
+  "ReFrofit": 250,
   "continueBet": true,
   "limitPayout": {
-    "min": 500,
-    "max": 550
+    "min": 1.1,
+    "max": 2.1
   }
 }

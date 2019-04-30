@@ -13,7 +13,7 @@ if (!config.isTest) {
     // chơi thử
     console.time("timetest");
     var fakebet=require("./libs/fakebet");
-    fakebet.init("9fa14761de54d476808a960db4510f1bc9d3d992f6918054855f966ebb52e5ef","09db278b06330490fsdfasdf")
+    // fakebet.init("5b33b22b1049e3ff713d3b5d9f9a3db3b8ce9077b69224a96d0f62560fa7b817","9169941893568768")
     RollBet = fakebet.rollBet;
 }
 var betOne = config.betOne;
@@ -226,12 +226,12 @@ function play() {
                     }
                     if (cachelimitLost) {
                         levelBet -= 1;
-                        cachedowndown -= 0.05;
+                        cachedowndown -= 0.04;
                         if (cachedowndown < 0.5) {
                             cachedowndown = 0.5;
                             console.log("cachedowndown" + cachedowndown)
                         }
-                        levelPayout += 0.15;
+                        levelPayout += config.steepUpPayout;
                         config.levelPayout = levelPayout;
                         config.levelBet = levelBet;
                         Database.UpdateConfig(config);
@@ -244,7 +244,7 @@ function play() {
                     cacheLost.countBet++;
                     if (IsReFrofit && cacheLost.isLost && cacheLost.countBet < realMultiply) {
                         let morebet = cacheLost.Perbet; // tính số lượng cần bổ sung
-                        bet += parseInt((totalLost + morebet + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
+                        bet = parseInt((totalLost + morebet + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
                     } else
                         bet = parseInt((totalLost + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
                     if (chainLost < realMultiply * 2.3)
@@ -252,9 +252,22 @@ function play() {
                 }
                 //qua ngưỡng thua limitLost và trong limitStopLost thì giảm 1 nửa cược nếu set config IsReFrofit =true
                 if (IsReFrofit && totalLost > startBalanceBet * config.limitStopLost) {
-                    bet *= 0.7;
+                    bet = 1;
                     // xóa phiên chơi hiện tại lưu số thua phục thù sau tạo phiên chơi mới
 
+                    if (checkCacheLost) {
+                        cacheLost.lost = cacheLost.lost+ startBalanceBet - balance + 5;
+                        cacheLost.ReFrofit = parseInt(ReFrofit);
+                        cacheLost.countBet = 0;
+                        chainLost++;
+                        cacheLost.isLost=true;
+                        cacheLost.Perbet = cacheLost.lost / cacheLost.ReFrofit;
+                        checkCacheLost = false;
+                        var tinh = parseInt(chainLost * multiply);
+                        console.log(chainLost+"cần gỡ vốn______________________"+tinh+"bet"+bet)
+                        console.log("cần gỡ vốn______________________"+cacheLost.lost+"balance"+balance)
+
+                    }
                     Log("___| " + "_saved lost_______" + totalLost);
                     ChatBot.SendFB("tt", "__Đã giảm hơn " + config.limitStopLost + "%" + "\n __ bet: " + bet + "\n __ CountBet :" + chainLost + "\n __ Mutil :" + multiply);
                 }
@@ -265,6 +278,18 @@ function play() {
                 var tinh = parseInt(chainLost * multiply);
                 // setCacheLost
 
+                if (IsReFrofit && cacheLost.isLost && bet!=1 && totalLost <= startBalanceBet * config.limitStopLost) {
+                    console.log(cacheLost.ReFrofit + "____gỡ vốn thành công___" + cacheLost.Perbet);
+                    console.log(cacheLost);
+                    cacheLost.lost -= cacheLost.Perbet;
+                    cacheLost.ReFrofit -= 1;
+                    cacheLost.countBet = 0;
+                    if (cacheLost.ReFrofit <= 0 || cacheLost.lost <= 0) {
+                        cacheLost.lost = 0;
+                        cacheLost.isLost = false;
+                        cacheLost.finished += 1;
+                    }
+                }
                 mapLost[tinh] += 1;
                 if (!config.isTest)
                     Database.Save("mapLost", mapLost);
@@ -447,7 +472,7 @@ function play() {
             if (continueBet && config.continueBet && balance > 0) {
                 if (config.isTest) {
                     // config.rounds là số lượng bet
-                    if (totalBest > config.rounds && totalLost < 10) {
+                    if ((totalBest > config.rounds && totalLost < 10 &&   !cacheLost.isLost)|| balance<2 ) {
                         doneTest=true;
                         console.log("");
                         console.log("");
@@ -463,14 +488,27 @@ function play() {
                         console.log("||levelPayout:" + levelPayout);
                         console.log("||maxLost____:" + maxLost);
                         console.log("||maxLost%___:" + maxLost2);
+                        console.log("_______________________________");
+                        var tinh = parseInt(chainLost * multiply);
+                        console.log("||betss_____:" + chainLost);
+                        console.log("||betss%____:" + tinh);
+                        console.log("||multiply__:" + realMultiply);
+
                         console.log("||"+JSON.stringify(mapLost));
+                        console.log("||"+JSON.stringify(cacheLost));
                         console.log("_______________________________");
                         console.log("_______________________________");
 
-                    } else
+                    } else{
+                        if(totalBest%500!=0){
+                            play()
+
+                        }else
                         setTimeout(function () {
                             play()
                         }, 1);
+
+                    }
 
                 } else if (totalBest > sleepBet) {
                     sleepBet = totalBest + Math.floor((Math.random() * 1134) + 400), totalBest = 0;
@@ -481,7 +519,7 @@ function play() {
 
                     setTimeout(function () {
                         play()
-                    }, 5);
+                    }, 1);
                 }
             } else {
                 config.continueBet = true;
@@ -552,6 +590,7 @@ let gracefulExit = function () {
         console.log("_______________________________");
 
     }
+    if(!config.isTest)
     Database.UpdateConfig(config, function () {
         Database.UpdateCache(cacheRolling, function () {
             console.log("saved cache");
@@ -559,6 +598,8 @@ let gracefulExit = function () {
             return process.exit(0);
         })
     });
+    else
+        return process.exit(0);
 
 };
 
