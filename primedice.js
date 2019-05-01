@@ -61,6 +61,7 @@ var betInfo = {
     totalBet: totalBest,
     totalLost: totalLost
 };
+var saveBets=[];
 var IsReFrofit = config.IsReFrofit;
 var ReFrofit = config.ReFrofit;
 var cacheLost = {isLost: false, lost: 0, ReFrofit: 0, countBet: 0, Perbet: 0, finished: 0};
@@ -242,13 +243,12 @@ function play() {
                     bet = 1;
                 } else {
                     cacheLost.countBet++;
-                    if (IsReFrofit && cacheLost.isLost && cacheLost.countBet < realMultiply) {
+                    if (IsReFrofit && cacheLost.isLost ) {
                         let morebet = cacheLost.Perbet; // tính số lượng cần bổ sung
                         bet = parseInt((totalLost + morebet + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
                     } else
                         bet = parseInt((totalLost + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
-                    if (chainLost < realMultiply * 2.3)
-                        bet += 1;
+
                 }
                 //qua ngưỡng thua limitLost và trong limitStopLost thì giảm 1 nửa cược nếu set config IsReFrofit =true
                 if (IsReFrofit && totalLost > startBalanceBet * config.limitStopLost) {
@@ -264,6 +264,10 @@ function play() {
                         cacheLost.Perbet = cacheLost.lost / cacheLost.ReFrofit;
                         checkCacheLost = false;
                         var tinh = parseInt(chainLost * multiply);
+                        if (   cacheLost.lost > maxLost) {
+                            maxLost = (balance - startBalanceBet);   // số thua lớn nhất
+                            maxLost2 = (((startBalanceBet - balance) / startBalanceBet) * 100).toFixed(2);
+                        }
                         console.log(chainLost+"cần gỡ vốn______________________"+tinh+"bet"+bet)
                         console.log("cần gỡ vốn______________________"+cacheLost.lost+"balance"+balance)
 
@@ -311,6 +315,7 @@ function play() {
                 }
                 Log("_______________________________________________________");
                 console.log(" -TB" + totalBest + " - User :" + username + " - balance :" + balance + " - bet :" + bet + " - profit bet :" + response.bet.profit + " - profit :" + (balance - startBalanceBet) + "- CN " + (1 / multiply).toFixed(2) + " - chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " - chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " - Max lost:" + maxLost + " - ProfitDay :" + ProfitDay + " - bet.id :" + response.bet.id + " map :" + JSON.stringify(mapLost));
+
                 let ct = "______---❤💰💰💰💰❤---______" +
                     "\n👉🏼 Username__ : " + username +
                     "\n👉🏼 Bet Now___ : " + bet.toFixed(2) +
@@ -319,6 +324,7 @@ function play() {
                     "\n👉🏼 chiu______ : " + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(1) + ")" +
                     "\n👉🏼 ProfitBet_ : " + (balance - startBalanceBet) +
                     "\n👉🏼 TimeBet___ : " + (TimePlay / 60).toFixed(2) + "p";
+
                 if (!config.isTest) {
 
                     ChatBot.SendFB("RT", ct);
@@ -532,6 +538,19 @@ function play() {
 }
 
 /*-------main------*/
+//
+// var express = require('express')
+// var app = express();
+// var path=require("path");
+// app.set
+// app.get('/', function (req, res) {
+//     res.render('index',{data:saveBets})
+// })
+// app.use(express.static(path.join(__dirname, 'public')));
+// app.set('views', path.join(__dirname, './views'));
+// app.set('view engine', 'ejs');
+// app.listen(3000);
+
 initBefore();
 play();
 console.log("-----------start bot-----------------");
@@ -607,3 +626,4 @@ process.on("SIGINT", gracefulExit).on("SIGTERM", gracefulExit);
 process.on('uncaughtException', (err) => {
     console.log("lỗi --------------" + err)
 });
+
