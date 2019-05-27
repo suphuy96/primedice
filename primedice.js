@@ -102,8 +102,8 @@ var cacheRolling = {
 
 /*-----Function change payout-------*/
 var FunChangePayout = function () {
-let temp=config.limitPayout.max+1-config.limitPayout.min;
-    realMultiply = parseFloat(parseFloat(config.limitPayout.min)+ parseFloat(Math.random(temp)));
+    let temp=config.limitPayout.max+1-config.limitPayout.min;
+    realMultiply =config.limitPayout.min;
     chance=100/realMultiply;
 
     //  payout chỉ nằm trong khoảng config.limitPayout.min đến config.limitPayout.max
@@ -186,7 +186,7 @@ var SaveBetInfo = function () {
     Database.Save("betInfo", betInfo);
 }
 SaveBetInfo();
-
+var counTLog=0;
 
 /*---------------logic----------------*/
 function play() {
@@ -239,6 +239,9 @@ function play() {
                     }
                     cachelimitLost = false;
                 }
+                if (chainLost < realMultiply * config.betZero) {
+                    bet = 0;
+                }else
                 if (chainLost < realMultiply * betOne) {
                     bet = 1;
                 } else {
@@ -251,7 +254,7 @@ function play() {
 
                 }
                 //qua ngưỡng thua limitLost và trong limitStopLost thì giảm 1 nửa cược nếu set config IsReFrofit =true
-                if (IsReFrofit && totalLost > startBalanceBet * config.limitStopLost) {
+                if (  (cacheLost.isLost && IsReFrofit && (totalLost +bet)> startBalanceBet * config.limitStopLost/2) || (IsReFrofit && (totalLost +bet) > startBalanceBet * config.limitStopLost)) {
                     bet = 1;
                     // xóa phiên chơi hiện tại lưu số thua phục thù sau tạo phiên chơi mới
 
@@ -314,7 +317,12 @@ function play() {
 
                 }
                 Log("_______________________________________________________");
-                console.log(" -TB" + totalBest + " - User :" + username + " - balance :" + balance + " - bet :" + bet + " - profit bet :" + response.bet.profit + " - profit :" + (balance - startBalanceBet) + "- CN " + (1 / multiply).toFixed(2) + " - chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " - chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " - Max lost:" + maxLost + " - ProfitDay :" + ProfitDay + " - bet.id :" + response.bet.id + " map :" + JSON.stringify(mapLost));
+                if(counTLog>config.counTLog){
+                    counTLog=0;
+                    console.log(" -TB" + totalBest + " - User :" + username + " - balance :" + balance + " - bet :" + bet + " - profit bet :" + response.bet.profit + " - profit :" + (balance - startBalanceBet) + "- CN " + (1 / multiply).toFixed(2) + " - chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " - chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " - Max lost:" + maxLost + " - ProfitDay :" + ProfitDay + " - bet.id :" + response.bet.id + " map :" + JSON.stringify(mapLost));
+
+                }
+                counTLog++;
 
                 let ct = "______---❤💰💰💰💰❤---______" +
                     "\n👉🏼 Username__ : " + username +
@@ -329,6 +337,17 @@ function play() {
 
                     ChatBot.SendFB("RT", ct);
                 }
+                if(config.betZero>0){
+                    bet = parseInt(0);
+
+                }else
+                   bet=1;
+                if(config.betZero==0&& betOne==0){
+                    bet = parseInt(levelBet*multiply);
+                    if(cacheLost.isLost)
+                    bet = parseInt((cacheLost.Perbet +levelBet )) * (multiply);
+                }
+
                 chainLost = 0;
                 totalLost = 0;
                 cacheLost.countBet = 0;
@@ -336,9 +355,8 @@ function play() {
                 checkCacheLost = true;
                 startBalanceBet = balance;
                 FunChangePayout();
-                bet = parseInt(1);
                 var balanceDemo = balance;
-                betDemo = 1;
+                betDemo = bet;
                 var demoLevelBet = levelBet;
                 chainLostDemo = 0;
                 var balanelimitLost = startBalanceBet * config.limitLost;
@@ -355,6 +373,9 @@ function play() {
                         if (demoLevelBet < 2)
                             demoLevelBet = 2;
                     }
+                    if (chainLostDemo < realMultiply * config.betZero) {
+                        betDemo = 0;
+                    }else
                     if (chainLostDemo < realMultiply * betOne) {
                         betDemo = 1;
                     } else {
@@ -455,16 +476,16 @@ function play() {
                     }
                 }
                 var initramdom = Math.floor((Math.random() * 10));
-                // đảo chiều roll
-                if (rollOverUnder == "below" && initramdom > 5) {
+                // đảo chiều roll && initramdom > 5
+                if (rollOverUnder == "above" ) {
                     payout = 100 - chance, rollOverUnder = "above";
                 } else {
                     payout = chance, rollOverUnder = "below";
                 }
             }
             // formart bet
-            if (bet < 1)
-                bet = parseInt(1);
+            if (bet < 0)
+                bet = parseInt(0);
             if (bet > balance)
                 bet = balance * 0.8;
 
@@ -473,7 +494,7 @@ function play() {
 
                 continueBet = betInfo.continueBet;
             }
-            bet = parseInt((bet).toFixed(8) + 0.1);
+            bet = parseInt((bet).toFixed(8));
             Log("debug chainLost:" + chainLost + " balance :" + balance + " bet :" + bet + " profit bet :" + response.bet.profit + " lostRoll :" + totalLost + " payoutIn: " + response.bet.payout.toFixed(2) + " multiply " + (1 / multiply).toFixed(2) + " chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " id :" + response.bet.id);
             if (continueBet && config.continueBet && balance > 0) {
                 if (config.isTest) {
@@ -510,9 +531,9 @@ function play() {
                             play()
 
                         }else
-                        setTimeout(function () {
-                            play()
-                        }, 1);
+                            setTimeout(function () {
+                                play()
+                            }, 1);
 
                     }
 
@@ -610,13 +631,13 @@ let gracefulExit = function () {
 
     }
     if(!config.isTest)
-    Database.UpdateConfig(config, function () {
-        Database.UpdateCache(cacheRolling, function () {
-            console.log("saved cache");
-            console.log("---------------------[ Server stopped at" + new Date().toISOString() + " ]---------------------------");
-            return process.exit(0);
-        })
-    });
+        Database.UpdateConfig(config, function () {
+            Database.UpdateCache(cacheRolling, function () {
+                console.log("saved cache");
+                console.log("---------------------[ Server stopped at" + new Date().toISOString() + " ]---------------------------");
+                return process.exit(0);
+            })
+        });
     else
         return process.exit(0);
 
@@ -626,4 +647,3 @@ process.on("SIGINT", gracefulExit).on("SIGTERM", gracefulExit);
 process.on('uncaughtException', (err) => {
     console.log("lỗi --------------" + err)
 });
-
