@@ -575,8 +575,6 @@ function play() {
 initBefore();
 play();
 console.log("-----------start bot-----------------");
-console.log(config);
-
 
 /* handle error*/
 let gracefulExit = function () {

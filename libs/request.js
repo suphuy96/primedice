@@ -20,6 +20,7 @@ var ChangeServerSeed = function (callback) {
 }
 var RollBet = function (amount, target, condition, coin, callback) {
     var chuyen = parseInt(amount) + "";
+
     var huytam = "0.";
     for (var i = 0; i < 8 - chuyen.length; i++) {
         huytam += "0";
@@ -34,12 +35,12 @@ var RollBet = function (amount, target, condition, coin, callback) {
         .set('x-access-token', config.token)
         .set('Content-type', 'application/json;charset=UTF-8')
         .send([{
-            "operationName": null,
+            "operationName": 'primediceRoll',
             "variables": {
                 "amount": parseFloat(huytam), "target": parseFloat(target),
                 "condition": condition, "currency": coin
             },
-            "query": "mutation ($amount: Float!, $target: Float!, $condition: BetGamePrimediceConditionEnum!, $currency: CurrencyEnum!) {\n  primediceRoll(amount: $amount, target: $target, condition: $condition, currency: $currency) {\n    ...BetFragment\n    ...PrimediceBetStateFragment\n    __typename\n  }\n}\n\nfragment BetFragment on Bet {\n  id\n  iid\n  payoutMultiplier\n  amountMultiplier\n  amount\n  payout\n  updatedAt\n  currency\n  game\n  user {\n    id\n    name\n     __typename\n  }\n  __typename\n}\n\nfragment PrimediceBetStateFragment on Bet {\n  state {\n    ... on BetGamePrimedice {\n      result\n      target\n      condition\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n "
+            "query": "mutation primediceRoll($amount: Float!, $target: Float!, $condition: CasinoGamePrimediceConditionEnum!, $currency: CurrencyEnum!) {  primediceRoll(amount: $amount, target: $target, condition: $condition, currency: $currency) {   ...CasinoBetFragment    state {      ...PrimediceStateFragment     __typename   }    __typename }}fragment CasinoBetFragment on CasinoBet { id  active  payoutMultiplier  amountMultiplier amount  payout updatedAt  currency  game  user {    id    name    __typename  }  __typename}fragment PrimediceStateFragment on CasinoGamePrimedice {  result  target  condition  __typename}"
         }])
         .end(function (error, res) {
             try {
@@ -76,6 +77,7 @@ var RollBet = function (amount, target, condition, coin, callback) {
 
             } catch (err) {
                 console.log(err)
+                console.log(res)
                 console.log(amount, target, condition, coin)
                 setTimeout(function () {
                     RollBet(amount, target, condition, coin, callback);
