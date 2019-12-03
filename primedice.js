@@ -246,10 +246,10 @@ function play() {
                     bet = 1;
                 } else {
                     cacheLost.countBet++;
-                    if (IsReFrofit && cacheLost.isLost ) {
-                        let morebet = cacheLost.Perbet; // tính số lượng cần bổ sung
-                        bet = parseInt((totalLost + morebet + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
-                    } else
+                    // if (IsReFrofit && cacheLost.isLost ) {
+                    //     let morebet = cacheLost.Perbet; // tính số lượng cần bổ sung
+                    //     bet = parseInt((totalLost + morebet + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
+                    // } else
                         bet = parseInt((totalLost + parseInt(chainLost * LevelBetNow * downdown))) * (multiply);
 
                 }
@@ -258,23 +258,23 @@ function play() {
                     bet = 1;
                     // xóa phiên chơi hiện tại lưu số thua phục thù sau tạo phiên chơi mới
 
-                    if (checkCacheLost) {
-                        cacheLost.lost = cacheLost.lost+ startBalanceBet - balance + 5;
-                        cacheLost.ReFrofit = parseInt(ReFrofit);
-                        cacheLost.countBet = 0;
-                        chainLost++;
-                        cacheLost.isLost=true;
-                        cacheLost.Perbet = cacheLost.lost / cacheLost.ReFrofit;
-                        checkCacheLost = false;
-                        var tinh = parseInt(chainLost * multiply);
-                        if (   cacheLost.lost > maxLost) {
-                            maxLost = (balance - startBalanceBet);   // số thua lớn nhất
-                            maxLost2 = (((startBalanceBet - balance) / startBalanceBet) * 100).toFixed(2);
-                        }
-                        console.log(chainLost+"cần gỡ vốn______________________"+tinh+"bet"+bet)
-                        console.log("cần gỡ vốn______________________"+cacheLost.lost+"balance"+balance)
-
-                    }
+                    // if (checkCacheLost) {
+                    //     cacheLost.lost = cacheLost.lost+ startBalanceBet - balance + 5;
+                    //     cacheLost.ReFrofit = parseInt(ReFrofit);
+                    //     cacheLost.countBet = 0;
+                    //     chainLost++;
+                    //     cacheLost.isLost=true;
+                    //     cacheLost.Perbet = cacheLost.lost / cacheLost.ReFrofit;
+                    //     checkCacheLost = false;
+                    //     var tinh = parseInt(chainLost * multiply);
+                    //     if (   cacheLost.lost > maxLost) {
+                    //         maxLost = (balance - startBalanceBet);   // số thua lớn nhất
+                    //         maxLost2 = (((startBalanceBet - balance) / startBalanceBet) * 100).toFixed(2);
+                    //     }
+                    //     console.log(chainLost+"cần gỡ vốn______________________"+tinh+"bet"+bet)
+                    //     console.log("cần gỡ vốn______________________"+cacheLost.lost+"balance"+balance)
+                    //
+                    // }
                     Log("___| " + "_saved lost_______" + totalLost);
                     ChatBot.SendFB("tt", "__Đã giảm hơn " + config.limitStopLost + "%" + "\n __ bet: " + bet + "\n __ CountBet :" + chainLost + "\n __ Mutil :" + multiply);
                 }
@@ -285,18 +285,18 @@ function play() {
                 var tinh = parseInt(chainLost * multiply);
                 // setCacheLost
 
-                if (IsReFrofit && cacheLost.isLost && bet!=1 && totalLost <= startBalanceBet * config.limitStopLost) {
-                    console.log(cacheLost.ReFrofit + "____gỡ vốn thành công___" + cacheLost.Perbet);
-                    console.log(cacheLost);
-                    cacheLost.lost -= cacheLost.Perbet;
-                    cacheLost.ReFrofit -= 1;
-                    cacheLost.countBet = 0;
-                    if (cacheLost.ReFrofit <= 0 || cacheLost.lost <= 0) {
-                        cacheLost.lost = 0;
-                        cacheLost.isLost = false;
-                        cacheLost.finished += 1;
-                    }
-                }
+                // if (IsReFrofit && cacheLost.isLost && bet!=1 && totalLost <= startBalanceBet * config.limitStopLost) {
+                //     console.log(cacheLost.ReFrofit + "____gỡ vốn thành công___" + cacheLost.Perbet);
+                //     console.log(cacheLost);
+                //     cacheLost.lost -= cacheLost.Perbet;
+                //     cacheLost.ReFrofit -= 1;
+                //     cacheLost.countBet = 0;
+                //     if (cacheLost.ReFrofit <= 0 || cacheLost.lost <= 0) {
+                //         cacheLost.lost = 0;
+                //         cacheLost.isLost = false;
+                //         cacheLost.finished += 1;
+                //     }
+                // }
                 mapLost[tinh] += 1;
                 if (!config.isTest)
                     Database.Save("mapLost", mapLost);
@@ -317,12 +317,8 @@ function play() {
 
                 }
                 Log("_______________________________________________________");
-                if(counTLog>config.counTLog){
-                    counTLog=0;
-                    console.log(" -TB" + totalBest + " - User :" + username + " - balance :" + balance + " - bet :" + bet + " - profit bet :" + response.bet.profit + " - profit :" + (balance - startBalanceBet) + "- CN " + (1 / multiply).toFixed(2) + " - chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " - chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " - Max lost:" + maxLost + " - ProfitDay :" + ProfitDay + " - bet.id :" + response.bet.id + " map :" + JSON.stringify(mapLost));
 
-                }
-                counTLog++;
+                console.log(" -TB" + totalBest + " - User :" + username + " - balance :" + balance + " - bet :" + bet + " - profit bet :" + response.bet.profit + " - profit :" + (balance - startBalanceBet) + "- CN " + (1 / multiply).toFixed(2) + " - chainLost :" + chainLost + "(" + (chainLost * multiply).toFixed(2) + ")" + " - chiu :" + chainLostDemo + "(" + (chainLostDemo * multiply).toFixed(2) + ")" + " - Max lost:" + maxLost + " - ProfitDay :" + ProfitDay + " - bet.id :" + response.bet.id + " map :" + JSON.stringify(mapLost));
 
                 let ct = "______---❤💰💰💰💰❤---______" +
                     "\n👉🏼 Username__ : " + username +
@@ -341,11 +337,11 @@ function play() {
                     bet = parseInt(0);
 
                 }else
-                   bet=1;
+                    bet=1;
                 if(config.betZero==0&& betOne==0){
                     bet = parseInt(levelBet*multiply);
                     if(cacheLost.isLost)
-                    bet = parseInt((cacheLost.Perbet +levelBet )) * (multiply);
+                        bet = parseInt((cacheLost.Perbet +levelBet )) * (multiply);
                 }
 
                 chainLost = 0;
